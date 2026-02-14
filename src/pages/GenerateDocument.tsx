@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Copy, Check, Loader2, Send, FileText, FileDown } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -278,8 +279,8 @@ const GenerateDocument = () => {
                       <span>正在生成文书...</span>
                     </div>
                   )}
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {generatedText}
+                  <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-xl prose-h2:text-lg prose-p:leading-relaxed">
+                    <ReactMarkdown>{generatedText}</ReactMarkdown>
                     {isGenerating && generatedText && <span className="inline-block h-4 w-1 animate-pulse bg-primary" />}
                   </div>
                 </ScrollArea>
