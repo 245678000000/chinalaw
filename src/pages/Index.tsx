@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Scale, FileText, Handshake } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Scale, FileText, Handshake, Search } from "lucide-react";
 import { documentTypes, categories, type DocumentCategory } from "@/lib/documentTypes";
 
 const categoryIcons: Record<DocumentCategory, typeof Scale> = {
@@ -14,10 +15,13 @@ const categoryIcons: Record<DocumentCategory, typeof Scale> = {
 const Index = () => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<DocumentCategory | null>(null);
+  const [search, setSearch] = useState("");
 
-  const filtered = activeCategory
-    ? documentTypes.filter((d) => d.category === activeCategory)
-    : documentTypes;
+  const filtered = documentTypes.filter((d) => {
+    const matchCategory = !activeCategory || d.category === activeCategory;
+    const matchSearch = !search.trim() || d.name.includes(search.trim()) || d.description.includes(search.trim()) || d.categoryLabel.includes(search.trim());
+    return matchCategory && matchSearch;
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,6 +38,17 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        {/* Search */}
+        <div className="mx-auto mb-6 max-w-md relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="搜索文书类型，如：起诉状、合同、离婚..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
         {/* Category Filter */}
         <div className="mb-8 flex flex-wrap justify-center gap-3">
           <Badge
