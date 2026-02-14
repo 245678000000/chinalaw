@@ -60,7 +60,7 @@ const Index = () => {
         </div>
 
         {/* Document Cards */}
-        <div className="mx-auto grid max-w-4xl gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-5xl gap-3 grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {filtered.map((doc) => {
             const Icon = doc.icon;
             return (
@@ -69,21 +69,16 @@ const Index = () => {
                 className="cursor-pointer transition-all hover:shadow-md hover:border-primary/30"
                 onClick={() => navigate(`/generate/${doc.id}`)}
               >
-                <CardHeader className="pb-3">
+                <CardHeader className="p-4 pb-2">
                   <div className="flex items-center gap-2">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent">
-                      <Icon className="h-5 w-5 text-accent-foreground" />
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-accent">
+                      <Icon className="h-4 w-4 text-accent-foreground" />
                     </div>
-                    <div>
-                      <CardTitle className="text-lg">{doc.name}</CardTitle>
-                      <Badge variant="secondary" className="mt-0.5 text-xs">
-                        {doc.categoryLabel}
-                      </Badge>
-                    </div>
+                    <CardTitle className="text-base leading-tight">{doc.name}</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <CardDescription>{doc.description}</CardDescription>
+                <CardContent className="px-4 pb-4 pt-0">
+                  <CardDescription className="text-xs">{doc.description}</CardDescription>
                 </CardContent>
               </Card>
             );
