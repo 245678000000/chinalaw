@@ -100,6 +100,33 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-6">
+        {/* Quick Start Guide */}
+        <div className="mx-auto max-w-3xl mb-8 animate-fade-in">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="flex flex-col items-center text-center p-3 sm:p-4 rounded-xl bg-gradient-to-b from-blue-50 to-transparent border border-blue-100/60">
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold mb-2">
+                1
+              </div>
+              <h3 className="text-xs sm:text-sm font-medium text-foreground">选择文书类型</h3>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-relaxed">从下方选择需要的文书模板</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-3 sm:p-4 rounded-xl bg-gradient-to-b from-emerald-50 to-transparent border border-emerald-100/60">
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold mb-2">
+                2
+              </div>
+              <h3 className="text-xs sm:text-sm font-medium text-foreground">填写关键信息</h3>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-relaxed">按提示填入当事人及案件信息</p>
+            </div>
+            <div className="flex flex-col items-center text-center p-3 sm:p-4 rounded-xl bg-gradient-to-b from-amber-50 to-transparent border border-amber-100/60">
+              <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-primary text-primary-foreground text-sm font-bold mb-2">
+                3
+              </div>
+              <h3 className="text-xs sm:text-sm font-medium text-foreground">AI生成文书</h3>
+              <p className="text-[10px] sm:text-xs text-muted-foreground mt-1 leading-relaxed">一键生成，可复制或导出Word/PDF</p>
+            </div>
+          </div>
+        </div>
+
         {/* Search */}
         <div className="mx-auto mb-6 max-w-lg relative animate-fade-in">
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
