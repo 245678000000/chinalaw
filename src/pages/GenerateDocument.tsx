@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Copy, Check, Loader2, Send } from "lucide-react";
+import { ArrowLeft, Copy, Check, Loader2, Send, FileText, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { documentTypes } from "@/lib/documentTypes";
+import { exportToWord, exportToPDF } from "@/lib/exportDocument";
 
 const GenerateDocument = () => {
   const { typeId } = useParams<{ typeId: string }>();
@@ -258,6 +259,14 @@ const GenerateDocument = () => {
                   <Button variant="outline" size="sm" onClick={handleCopy} disabled={!generatedText || isGenerating}>
                     {copied ? <Check className="mr-1 h-4 w-4" /> : <Copy className="mr-1 h-4 w-4" />}
                     {copied ? "已复制" : "复制全文"}
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => exportToWord(generatedText, docType.name)} disabled={!generatedText || isGenerating}>
+                    <FileText className="mr-1 h-4 w-4" />
+                    导出Word
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => exportToPDF(generatedText, docType.name)} disabled={!generatedText || isGenerating}>
+                    <FileDown className="mr-1 h-4 w-4" />
+                    导出PDF
                   </Button>
                 </div>
               </CardHeader>
