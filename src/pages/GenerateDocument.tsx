@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Copy, Check, Loader2, Send, FileText, FileDown } from "lucide-react";
+import { ArrowLeft, Copy, Check, Loader2, Send, FileText, FileDown, ChevronDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,7 +75,6 @@ const GenerateDocument = () => {
     );
 
     if (!resp.ok) {
-      const errText = await resp.text();
       let msg = "生成失败，请稍后重试";
       if (resp.status === 429) msg = "请求过于频繁，请稍后再试";
       if (resp.status === 402) msg = "服务额度已用完，请联系管理员";
@@ -180,108 +179,163 @@ const GenerateDocument = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  // Group fields by prefix for better visual organization
+  const groupedFields = groupFields(docType.fields);
+  const filledCount = docType.fields.filter((f) => formData[f.name]?.trim()).length;
+  const totalFields = docType.fields.length;
+  const requiredCount = docType.fields.filter((f) => f.required).length;
+  const filledRequired = docType.fields.filter((f) => f.required && formData[f.name]?.trim()).length;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border bg-card">
-        <div className="container mx-auto flex items-center gap-3 px-4 py-4">
-          <Button variant="ghost" size="icon" asChild>
+      <header className="border-b border-border bg-card sticky top-0 z-10">
+        <div className="container mx-auto flex items-center gap-3 px-4 py-3">
+          <Button variant="ghost" size="icon" className="shrink-0" asChild>
             <Link to="/"><ArrowLeft className="h-5 w-5" /></Link>
           </Button>
-          <div>
-            <h1 className="text-xl font-bold">{docType.name}</h1>
-            <p className="text-sm text-muted-foreground">{docType.description}</p>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg font-bold truncate">{docType.name}</h1>
+            <p className="text-xs text-muted-foreground truncate">{docType.description}</p>
           </div>
+          {step === "form" && (
+            <span className="hidden sm:inline-flex text-xs text-muted-foreground bg-muted px-2.5 py-1 rounded-full shrink-0">
+              {filledRequired}/{requiredCount} 必填
+            </span>
+          )}
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-6">
         {step === "form" ? (
-          <Card className="mx-auto max-w-2xl">
-            <CardHeader>
+          <Card className="mx-auto max-w-2xl animate-fade-in">
+            <CardHeader className="pb-4">
               <CardTitle className="text-lg">请填写文书信息</CardTitle>
-              <p className="text-sm text-muted-foreground">带 * 的为必填项</p>
+              <p className="text-sm text-muted-foreground">
+                带 <span className="text-destructive">*</span> 的为必填项 · 已填写 {filledCount}/{totalFields} 项
+              </p>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {docType.fields.map((field) => (
-                <div key={field.name} className="space-y-1.5">
-                  <Label htmlFor={field.name}>
-                    {field.label}
-                    {field.required && <span className="ml-1 text-destructive">*</span>}
-                  </Label>
-                  {field.type === "select" ? (
-                    <Select
-                      value={formData[field.name] || ""}
-                      onValueChange={(v) => handleFieldChange(field.name, v)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="请选择" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {field.options?.map((opt) => (
-                          <SelectItem key={opt} value={opt}>{opt}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : field.type === "textarea" ? (
-                    <Textarea
-                      id={field.name}
-                      placeholder={field.placeholder}
-                      value={formData[field.name] || ""}
-                      onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                      rows={4}
-                    />
-                  ) : (
-                    <Input
-                      id={field.name}
-                      placeholder={field.placeholder}
-                      value={formData[field.name] || ""}
-                      onChange={(e) => handleFieldChange(field.name, e.target.value)}
-                    />
+            <CardContent className="space-y-6">
+              {groupedFields.map((group, gi) => (
+                <fieldset key={gi} className="space-y-4">
+                  {group.label && (
+                    <legend className="text-sm font-medium text-foreground border-b border-border pb-1.5 mb-3 w-full">
+                      {group.label}
+                    </legend>
                   )}
-                </div>
+                  {group.fields.map((field) => (
+                    <div key={field.name} className="space-y-1.5">
+                      <Label htmlFor={field.name} className="text-sm">
+                        {field.label}
+                        {field.required && <span className="ml-0.5 text-destructive">*</span>}
+                      </Label>
+                      {field.type === "select" ? (
+                        <Select
+                          value={formData[field.name] || ""}
+                          onValueChange={(v) => handleFieldChange(field.name, v)}
+                        >
+                          <SelectTrigger className="h-10">
+                            <SelectValue placeholder="请选择" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {field.options?.map((opt) => (
+                              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : field.type === "textarea" ? (
+                        <Textarea
+                          id={field.name}
+                          placeholder={field.placeholder}
+                          value={formData[field.name] || ""}
+                          onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                          rows={4}
+                          className="resize-y min-h-[80px]"
+                        />
+                      ) : (
+                        <Input
+                          id={field.name}
+                          placeholder={field.placeholder}
+                          value={formData[field.name] || ""}
+                          onChange={(e) => handleFieldChange(field.name, e.target.value)}
+                          className="h-10"
+                        />
+                      )}
+                    </div>
+                  ))}
+                </fieldset>
               ))}
 
-              <Button className="mt-6 w-full" size="lg" onClick={handleGenerate}>
+              <Button className="mt-6 w-full h-12 text-base" size="lg" onClick={handleGenerate}>
+                <Loader2 className="mr-2 h-4 w-4 hidden" />
                 生成文书
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="mx-auto max-w-3xl space-y-4">
+          <div className="mx-auto max-w-3xl space-y-4 animate-fade-in">
             {/* Result area */}
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-3">
-                <CardTitle className="text-lg">文书预览</CardTitle>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => { setStep("form"); setGeneratedText(""); }}>
-                    重新填写
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleCopy} disabled={!generatedText || isGenerating}>
-                    {copied ? <Check className="mr-1 h-4 w-4" /> : <Copy className="mr-1 h-4 w-4" />}
-                    {copied ? "已复制" : "复制全文"}
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => exportToWord(generatedText, docType.name)} disabled={!generatedText || isGenerating}>
-                    <FileText className="mr-1 h-4 w-4" />
-                    导出Word
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => exportToPDF(generatedText, docType.name)} disabled={!generatedText || isGenerating}>
-                    <FileDown className="mr-1 h-4 w-4" />
-                    导出PDF
-                  </Button>
+              <CardHeader className="pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <CardTitle className="text-lg">文书预览</CardTitle>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => { setStep("form"); setGeneratedText(""); }}
+                      className="text-xs"
+                    >
+                      重新填写
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopy}
+                      disabled={!generatedText || isGenerating}
+                      className="text-xs"
+                    >
+                      {copied ? <Check className="mr-1 h-3.5 w-3.5" /> : <Copy className="mr-1 h-3.5 w-3.5" />}
+                      {copied ? "已复制" : "复制"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => exportToWord(generatedText, docType.name)}
+                      disabled={!generatedText || isGenerating}
+                      className="text-xs"
+                    >
+                      <FileText className="mr-1 h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">导出</span>Word
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => exportToPDF(generatedText, docType.name)}
+                      disabled={!generatedText || isGenerating}
+                      className="text-xs"
+                    >
+                      <FileDown className="mr-1 h-3.5 w-3.5" />
+                      <span className="hidden sm:inline">导出</span>PDF
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="max-h-[60vh]">
                   {isGenerating && !generatedText && (
-                    <div className="flex items-center gap-2 py-8 justify-center text-muted-foreground">
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span>正在生成文书...</span>
+                    <div className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
+                      <div className="relative">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                      <span className="text-sm">正在生成文书，请稍候...</span>
                     </div>
                   )}
                   <div className="prose prose-sm max-w-none dark:prose-invert prose-headings:font-bold prose-h1:text-xl prose-h2:text-lg prose-p:leading-relaxed">
                     <ReactMarkdown>{generatedText}</ReactMarkdown>
-                    {isGenerating && generatedText && <span className="inline-block h-4 w-1 animate-pulse bg-primary" />}
+                    {isGenerating && generatedText && (
+                      <span className="inline-block h-5 w-0.5 animate-pulse bg-primary ml-0.5 align-text-bottom" />
+                    )}
                   </div>
                 </ScrollArea>
               </CardContent>
@@ -289,18 +343,31 @@ const GenerateDocument = () => {
 
             {/* Follow-up input */}
             {!isGenerating && generatedText && (
-              <Card>
+              <Card className="animate-fade-in">
                 <CardContent className="pt-4">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    对生成内容不满意？输入修改意见让AI帮您调整：
+                  </p>
                   <div className="flex gap-2">
                     <Input
-                      placeholder="输入修改意见，如：把违约金比例改为10%"
+                      placeholder="如：把违约金比例改为10%、增加保密条款..."
                       value={followUp}
                       onChange={(e) => setFollowUp(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && !isFollowingUp && handleFollowUp()}
                       disabled={isFollowingUp}
+                      className="h-10"
                     />
-                    <Button onClick={handleFollowUp} disabled={isFollowingUp || !followUp.trim()}>
-                      {isFollowingUp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    <Button
+                      onClick={handleFollowUp}
+                      disabled={isFollowingUp || !followUp.trim()}
+                      size="icon"
+                      className="shrink-0 h-10 w-10"
+                    >
+                      {isFollowingUp ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Send className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
                 </CardContent>
@@ -310,7 +377,7 @@ const GenerateDocument = () => {
         )}
       </main>
 
-      <footer className="mt-8 border-t border-border bg-muted/50 py-4 text-center">
+      <footer className="mt-8 border-t border-border bg-muted/30 py-4 text-center">
         <p className="text-xs text-muted-foreground">
           ⚠️ 本文书为AI生成的参考模板，不构成法律意见。请咨询专业律师后使用。
         </p>
@@ -318,5 +385,47 @@ const GenerateDocument = () => {
     </div>
   );
 };
+
+/* Helper: group fields by party prefix for visual organization */
+function groupFields(fields: typeof documentTypes[number]["fields"]) {
+  const groups: { label: string | null; fields: typeof fields }[] = [];
+  let currentGroup: typeof fields = [];
+  let currentLabel: string | null = null;
+
+  for (const field of fields) {
+    // Detect party-like groups (fields ending with Name, IdNumber, Address, Phone in sequence)
+    const partyMatch = field.name.match(/^(.+?)(Name|IdNumber|Address|Phone)$/);
+    if (partyMatch) {
+      const prefix = partyMatch[1];
+      const suffix = partyMatch[2];
+
+      if (suffix === "Name") {
+        // Start a new party group - push previous group first
+        if (currentGroup.length > 0) {
+          groups.push({ label: currentLabel, fields: currentGroup });
+        }
+        // Extract label from the field label (remove 姓名/名称 suffix)
+        currentLabel = field.label.replace(/姓名\/名称$|姓名$|名称$/, "").trim() + "信息";
+        currentGroup = [field];
+      } else {
+        currentGroup.push(field);
+      }
+    } else {
+      // Non-party field
+      if (currentGroup.length > 0 && currentLabel) {
+        groups.push({ label: currentLabel, fields: currentGroup });
+        currentGroup = [];
+        currentLabel = null;
+      }
+      currentGroup.push(field);
+    }
+  }
+
+  if (currentGroup.length > 0) {
+    groups.push({ label: currentLabel, fields: currentGroup });
+  }
+
+  return groups;
+}
 
 export default GenerateDocument;
