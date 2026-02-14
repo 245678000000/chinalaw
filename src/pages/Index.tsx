@@ -3,13 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Scale, FileText, Handshake, Search } from "lucide-react";
+import { Scale, FileText, Handshake, Search, Building2 } from "lucide-react";
 import { documentTypes, categories, type DocumentCategory } from "@/lib/documentTypes";
 
 const categoryIcons: Record<DocumentCategory, typeof Scale> = {
   litigation: Scale,
   contract: Handshake,
   family: FileText,
+  corporate: Building2,
 };
 
 const Index = () => {

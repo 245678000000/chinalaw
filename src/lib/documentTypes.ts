@@ -1,6 +1,6 @@
-import { FileText, Scale, Handshake, Heart, BookOpen, Gavel, ShoppingCart, ScrollText } from "lucide-react";
+import { FileText, Scale, Handshake, Heart, BookOpen, Gavel, ShoppingCart, ScrollText, Building2, Users, Briefcase } from "lucide-react";
 
-export type DocumentCategory = "litigation" | "contract" | "family";
+export type DocumentCategory = "litigation" | "contract" | "family" | "corporate";
 
 export interface DocumentType {
   id: string;
@@ -297,10 +297,108 @@ export const documentTypes: DocumentType[] = [
       { name: "financialArrangement", label: "费用安排", type: "textarea", required: false, placeholder: "选填，如：被监护人财产用于其生活、教育、医疗等" },
     ],
   },
+  {
+    id: "shareholder-resolution",
+    name: "股东会决议/董事会决议",
+    category: "corporate",
+    categoryLabel: "商事/公司治理类",
+    description: "记录股东会或董事会决议事项的正式文书",
+    icon: Building2,
+    fields: [
+      { name: "companyName", label: "公司名称", type: "text", required: true, placeholder: "请输入公司全称" },
+      { name: "creditCode", label: "统一社会信用代码", type: "text", required: false, placeholder: "选填" },
+      { name: "meetingType", label: "会议类型", type: "select", required: true, placeholder: "", options: ["股东会决议", "董事会决议"] },
+      { name: "meetingDate", label: "会议日期", type: "text", required: true, placeholder: "如：2024年6月1日" },
+      { name: "meetingPlace", label: "会议地点", type: "text", required: false, placeholder: "选填" },
+      { name: "attendees", label: "出席人员", type: "textarea", required: true, placeholder: "请列明全体出席股东/董事及其持股比例或职务" },
+      { name: "resolutions", label: "决议事项", type: "textarea", required: true, placeholder: "请逐条列明决议内容，如：1. 同意变更法定代表人为XXX；2. 同意修改公司章程第X条..." },
+      { name: "votingResult", label: "表决结果", type: "textarea", required: true, placeholder: "如：全体股东一致同意/经代表XX%表决权的股东同意通过" },
+    ],
+  },
+  {
+    id: "legal-rep-change",
+    name: "法定代表人变更文件",
+    category: "corporate",
+    categoryLabel: "商事/公司治理类",
+    description: "法定代表人变更的决议及申请文件",
+    icon: Briefcase,
+    fields: [
+      { name: "companyName", label: "公司名称", type: "text", required: true, placeholder: "请输入公司全称" },
+      { name: "creditCode", label: "统一社会信用代码", type: "text", required: false, placeholder: "选填" },
+      { name: "originalRep", label: "原法定代表人姓名", type: "text", required: true, placeholder: "请输入原法定代表人姓名" },
+      { name: "originalRepId", label: "原法定代表人身份证号", type: "text", required: false, placeholder: "选填" },
+      { name: "newRep", label: "新法定代表人姓名", type: "text", required: true, placeholder: "请输入新法定代表人姓名" },
+      { name: "newRepId", label: "新法定代表人身份证号", type: "text", required: false, placeholder: "选填" },
+      { name: "changeReason", label: "变更原因", type: "textarea", required: true, placeholder: "如：原法定代表人因个人原因辞去职务" },
+      { name: "changeDate", label: "变更日期", type: "text", required: true, placeholder: "如：2024年6月1日" },
+      { name: "registrationAuthority", label: "登记机关", type: "text", required: false, placeholder: "选填，如：北京市朝阳区市场监督管理局" },
+    ],
+  },
+  {
+    id: "company-articles",
+    name: "公司章程（简版）",
+    category: "corporate",
+    categoryLabel: "商事/公司治理类",
+    description: "有限责任公司章程简版模板",
+    icon: BookOpen,
+    fields: [
+      { name: "companyName", label: "公司名称", type: "text", required: true, placeholder: "请输入公司全称" },
+      { name: "registeredAddress", label: "注册地址", type: "text", required: true, placeholder: "请输入公司注册地址" },
+      { name: "businessScope", label: "经营范围", type: "textarea", required: true, placeholder: "请描述主要经营范围" },
+      { name: "registeredCapital", label: "注册资本（万元）", type: "text", required: true, placeholder: "如：100" },
+      { name: "shareholders", label: "股东及出资信息", type: "textarea", required: true, placeholder: "请列明各股东姓名/名称、出资额、出资比例、出资方式、出资时间" },
+      { name: "legalRep", label: "法定代表人", type: "text", required: true, placeholder: "请输入法定代表人姓名" },
+      { name: "executiveDirector", label: "执行董事/董事会", type: "select", required: true, placeholder: "", options: ["设执行董事（不设董事会）", "设董事会"] },
+      { name: "supervisor", label: "监事/监事会", type: "select", required: true, placeholder: "", options: ["设监事一名（不设监事会）", "设监事会"] },
+      { name: "profitDistribution", label: "利润分配方式", type: "select", required: true, placeholder: "", options: ["按出资比例分配", "按章程约定比例分配"] },
+    ],
+  },
+  {
+    id: "equity-holding-agreement",
+    name: "股权代持协议",
+    category: "corporate",
+    categoryLabel: "商事/公司治理类",
+    description: "明确实际出资人与名义股东的权利义务（含风险提示）",
+    icon: Users,
+    fields: [
+      ...partyFields("actualHolder", "实际出资人(甲方)"),
+      ...partyFields("nominalHolder", "名义股东(乙方)"),
+      { name: "targetCompany", label: "目标公司名称", type: "text", required: true, placeholder: "请输入被代持股权的公司全称" },
+      { name: "equityAmount", label: "代持股权比例/金额", type: "text", required: true, placeholder: "如：30%股权，对应出资额30万元" },
+      { name: "investmentAmount", label: "实际出资金额（元）", type: "text", required: true, placeholder: "如：300000" },
+      { name: "rightsExercise", label: "股东权利行使方式", type: "textarea", required: true, placeholder: "请说明表决权、分红权等如何行使，如：乙方须按甲方书面指示行使表决权" },
+      { name: "profitDistribution", label: "收益分配约定", type: "textarea", required: true, placeholder: "如：乙方收到分红后X日内全额转付甲方" },
+      { name: "transferRestriction", label: "股权处分限制", type: "textarea", required: true, placeholder: "如：未经甲方书面同意，乙方不得转让、质押或以其他方式处分代持股权" },
+      { name: "breachClause", label: "违约责任", type: "textarea", required: true, placeholder: "请约定违约金或赔偿方式" },
+      { name: "riskWarning", label: "风险提示事项", type: "textarea", required: false, placeholder: "选填，如：代持协议不得对抗善意第三人；名义股东被执行时的风险等" },
+    ],
+  },
+  {
+    id: "partnership-agreement",
+    name: "合伙协议",
+    category: "corporate",
+    categoryLabel: "商事/公司治理类",
+    description: "合伙企业或项目合伙的权利义务约定",
+    icon: Handshake,
+    fields: [
+      { name: "partnershipName", label: "合伙企业/项目名称", type: "text", required: true, placeholder: "请输入合伙企业或项目名称" },
+      { name: "partnershipType", label: "合伙类型", type: "select", required: true, placeholder: "", options: ["普通合伙", "有限合伙", "项目合伙（非企业）"] },
+      { name: "partners", label: "全体合伙人信息", type: "textarea", required: true, placeholder: "请列明各合伙人姓名/名称、身份证号/信用代码、出资额、出资方式" },
+      { name: "totalCapital", label: "出资总额（元）", type: "text", required: true, placeholder: "如：500000" },
+      { name: "businessScope", label: "经营范围/合伙事务", type: "textarea", required: true, placeholder: "请描述合伙经营的业务范围或项目内容" },
+      { name: "profitSharing", label: "利润分配与亏损分担", type: "textarea", required: true, placeholder: "请说明利润分配比例及亏损承担方式" },
+      { name: "executingPartner", label: "执行事务合伙人", type: "text", required: true, placeholder: "请指定执行事务的合伙人姓名" },
+      { name: "decisionMaking", label: "决策机制", type: "textarea", required: false, placeholder: "选填，如：重大事项须全体合伙人一致同意" },
+      { name: "withdrawalTerms", label: "入伙与退伙条款", type: "textarea", required: false, placeholder: "选填，如：退伙需提前30日书面通知" },
+      { name: "dissolution", label: "解散与清算", type: "textarea", required: false, placeholder: "选填，如：合伙期满或全体合伙人一致同意解散" },
+      { name: "disputeResolution", label: "争议解决方式", type: "select", required: true, placeholder: "", options: ["协商解决，协商不成向合伙企业所在地人民法院起诉", "提交仲裁委员会仲裁"] },
+    ],
+  },
 ];
 
 export const categories = [
   { id: "litigation" as DocumentCategory, label: "诉讼类", description: "起诉状、答辩状、上诉状等" },
   { id: "contract" as DocumentCategory, label: "合同类", description: "借款、租赁、买卖等合同" },
   { id: "family" as DocumentCategory, label: "身份/家事类", description: "离婚协议、遗嘱等" },
+  { id: "corporate" as DocumentCategory, label: "商事/公司治理类", description: "股东会决议、章程、合伙协议等" },
 ];
