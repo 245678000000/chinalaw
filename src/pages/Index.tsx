@@ -131,6 +131,7 @@ const Index = () => {
         <div className="mx-auto mb-6 max-w-lg relative animate-fade-in">
           <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            aria-label="搜索文书类型"
             placeholder="搜索文书类型，如：起诉状、合同、离婚..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -139,11 +140,15 @@ const Index = () => {
         </div>
 
         {/* Category Navigation */}
-        <div className="mb-8 flex flex-wrap justify-center gap-2 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <div className="mb-8 flex flex-wrap justify-center gap-2 animate-fade-in" role="tablist" aria-label="文书类别筛选" style={{ animationDelay: "0.1s" }}>
           <Badge
             variant={activeCategory === null ? "default" : "outline"}
             className="cursor-pointer px-4 py-2 text-sm transition-all hover:shadow-sm"
+            role="tab"
+            tabIndex={0}
+            aria-selected={activeCategory === null}
             onClick={() => setActiveCategory(null)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setActiveCategory(null); } }}
           >
             全部
           </Badge>
@@ -155,12 +160,26 @@ const Index = () => {
                 key={cat.id}
                 variant={activeCategory === cat.id ? "default" : "outline"}
                 className="cursor-pointer px-4 py-2 text-sm transition-all hover:shadow-sm"
+                role="tab"
+                tabIndex={0}
+                aria-selected={activeCategory === cat.id}
                 onClick={() => {
                   if (activeCategory === cat.id) {
                     setActiveCategory(null);
                   } else {
                     setActiveCategory(cat.id);
                     scrollToCategory(cat.id);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    if (activeCategory === cat.id) {
+                      setActiveCategory(null);
+                    } else {
+                      setActiveCategory(cat.id);
+                      scrollToCategory(cat.id);
+                    }
                   }
                 }}
               >
@@ -238,6 +257,7 @@ const Index = () => {
                   {showToggle && (
                     <button
                       onClick={() => toggleExpand(group.id)}
+                      aria-expanded={isExpanded}
                       className="mt-4 flex items-center gap-1.5 text-sm text-primary hover:text-primary/80 transition-colors mx-auto group"
                     >
                       {isExpanded ? (
@@ -285,9 +305,13 @@ function DocCard({
 
   return (
     <Card
-      className="cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/20 group"
+      className="cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/20 group focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:outline-none"
       style={{ animationDelay: `${index * 0.03}s` }}
+      role="button"
+      tabIndex={0}
+      aria-label={`${doc.name} — ${doc.description}`}
       onClick={() => onNavigate(`/generate/${doc.id}`)}
+      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onNavigate(`/generate/${doc.id}`); } }}
     >
       <CardHeader className="p-3 sm:p-4 pb-1.5 sm:pb-2">
         <div className="flex items-center gap-2">
