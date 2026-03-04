@@ -9,6 +9,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     hmr: {
+      // Lovable platform injects runtime tags that trigger HMR overlay noise
       overlay: false,
     },
   },
