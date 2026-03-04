@@ -1,42 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { groupFields } from "@/lib/groupFields";
 import { documentTypes } from "@/lib/documentTypes";
-
-// Re-implement groupFields for testing since it's not exported
-// We test it indirectly through its behavior with documentTypes
-function groupFields(fields: typeof documentTypes[number]["fields"]) {
-  const groups: { label: string | null; fields: typeof fields }[] = [];
-  let currentGroup: typeof fields = [];
-  let currentLabel: string | null = null;
-
-  for (const field of fields) {
-    const partyMatch = field.name.match(/^(.+?)(Name|IdNumber|Address|Phone)$/);
-    if (partyMatch) {
-      const suffix = partyMatch[2];
-      if (suffix === "Name") {
-        if (currentGroup.length > 0) {
-          groups.push({ label: currentLabel, fields: currentGroup });
-        }
-        currentLabel = field.label.replace(/姓名\/名称$|姓名$|名称$/, "").trim() + "信息";
-        currentGroup = [field];
-      } else {
-        currentGroup.push(field);
-      }
-    } else {
-      if (currentGroup.length > 0 && currentLabel) {
-        groups.push({ label: currentLabel, fields: currentGroup });
-        currentGroup = [];
-        currentLabel = null;
-      }
-      currentGroup.push(field);
-    }
-  }
-
-  if (currentGroup.length > 0) {
-    groups.push({ label: currentLabel, fields: currentGroup });
-  }
-
-  return groups;
-}
 
 describe("groupFields", () => {
   it("should group party fields (Name/IdNumber/Address/Phone) together", () => {

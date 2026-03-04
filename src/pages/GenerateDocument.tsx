@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Copy, Check, Loader2, Send, FileText, FileDown, ChevronDown } from "lucide-react";
+import { ArrowLeft, Copy, Check, Loader2, Send, FileText, FileDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { documentTypes } from "@/lib/documentTypes";
 import { exportToWord, exportToPDF } from "@/lib/exportDocument";
+import { groupFields } from "@/lib/groupFields";
 
 const GenerateDocument = () => {
   const { typeId } = useParams<{ typeId: string }>();
@@ -298,9 +299,9 @@ const GenerateDocument = () => {
                 </fieldset>
               ))}
 
-              <Button className="mt-6 w-full h-12 text-base" size="lg" onClick={handleGenerate}>
-                <Loader2 className="mr-2 h-4 w-4 hidden" />
-                生成文书
+              <Button className="mt-6 w-full h-12 text-base" size="lg" onClick={handleGenerate} disabled={isGenerating}>
+                {isGenerating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isGenerating ? "生成中..." : "生成文书"}
               </Button>
             </CardContent>
           </Card>
@@ -417,47 +418,5 @@ const GenerateDocument = () => {
     </div>
   );
 };
-
-/* Helper: group fields by party prefix for visual organization */
-function groupFields(fields: typeof documentTypes[number]["fields"]) {
-  const groups: { label: string | null; fields: typeof fields }[] = [];
-  let currentGroup: typeof fields = [];
-  let currentLabel: string | null = null;
-
-  for (const field of fields) {
-    // Detect party-like groups (fields ending with Name, IdNumber, Address, Phone in sequence)
-    const partyMatch = field.name.match(/^(.+?)(Name|IdNumber|Address|Phone)$/);
-    if (partyMatch) {
-      const prefix = partyMatch[1];
-      const suffix = partyMatch[2];
-
-      if (suffix === "Name") {
-        // Start a new party group - push previous group first
-        if (currentGroup.length > 0) {
-          groups.push({ label: currentLabel, fields: currentGroup });
-        }
-        // Extract label from the field label (remove 姓名/名称 suffix)
-        currentLabel = field.label.replace(/姓名\/名称$|姓名$|名称$/, "").trim() + "信息";
-        currentGroup = [field];
-      } else {
-        currentGroup.push(field);
-      }
-    } else {
-      // Non-party field
-      if (currentGroup.length > 0 && currentLabel) {
-        groups.push({ label: currentLabel, fields: currentGroup });
-        currentGroup = [];
-        currentLabel = null;
-      }
-      currentGroup.push(field);
-    }
-  }
-
-  if (currentGroup.length > 0) {
-    groups.push({ label: currentLabel, fields: currentGroup });
-  }
-
-  return groups;
-}
 
 export default GenerateDocument;
