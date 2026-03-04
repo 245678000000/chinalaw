@@ -40,11 +40,12 @@ const Index = () => {
 
   const filtered = documentTypes.filter((d) => {
     const matchCategory = !activeCategory || d.category === activeCategory;
+    const q = search.trim().toLowerCase();
     const matchSearch =
       !isSearching ||
-      d.name.includes(search.trim()) ||
-      d.description.includes(search.trim()) ||
-      d.categoryLabel.includes(search.trim());
+      d.name.toLowerCase().includes(q) ||
+      d.description.toLowerCase().includes(q) ||
+      d.categoryLabel.toLowerCase().includes(q);
     return matchCategory && matchSearch;
   });
 
