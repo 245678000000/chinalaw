@@ -1,11 +1,19 @@
 import { Document, Packer, Paragraph, TextRun, AlignmentType } from "docx";
 import { saveAs } from "file-saver";
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 export async function exportToWord(text: string, title: string) {
   const lines = text.split("\n");
   const paragraphs = lines.map((line, i) => {
     const trimmed = line.trim();
-    // Title line (first non-empty line or lines that look like titles)
     const isTitle = i === 0 && trimmed.length > 0;
     return new Paragraph({
       alignment: isTitle ? AlignmentType.CENTER : AlignmentType.LEFT,
@@ -31,14 +39,19 @@ export async function exportToWord(text: string, title: string) {
 
 export function exportToPDF(text: string, title: string) {
   const printWindow = window.open("", "_blank");
-  if (!printWindow) return;
+  if (!printWindow) {
+    throw new Error("弹窗被浏览器拦截，请允许弹窗后重试");
+  }
+
+  const safeTitle = escapeHtml(title);
+  const safeText = escapeHtml(text);
 
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
-      <title>${title}</title>
+      <title>${safeTitle}</title>
       <style>
         body {
           font-family: "SimSun", "宋体", serif;
@@ -53,7 +66,7 @@ export function exportToPDF(text: string, title: string) {
       </style>
     </head>
     <body>
-      <pre style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: inherit; line-height: inherit;">${text.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>
+      <pre style="white-space: pre-wrap; word-wrap: break-word; font-family: inherit; font-size: inherit; line-height: inherit;">${safeText}</pre>
       <script>window.onload = function() { window.print(); }</script>
     </body>
     </html>

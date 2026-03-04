@@ -1,73 +1,62 @@
-# Welcome to your Lovable project
+# AI 智能法律文书助手
 
-## Project info
+快速生成规范的法律文书初稿，降低法律服务门槛。已收录 42 种文书模板，覆盖诉讼、合同、家事、商事四大领域。
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## 技术栈
 
-## How can I edit this code?
+- **前端框架**: React 18 + TypeScript
+- **构建工具**: Vite 5 (SWC)
+- **UI 组件**: shadcn/ui (Radix UI)
+- **样式**: Tailwind CSS 3
+- **路由**: React Router 6
+- **状态**: TanStack React Query 5
+- **AI 后端**: Supabase Edge Functions
+- **测试**: Vitest + React Testing Library
+- **文档导出**: docx (Word) + 浏览器打印 (PDF)
 
-There are several ways of editing your application.
+## 快速开始
 
-**Use Lovable**
+```bash
+# 1. 安装依赖
+npm install
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+# 2. 配置环境变量
+cp .env.example .env
+# 编辑 .env，填入 Supabase 凭证
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# 3. 启动开发服务器（端口 8080）
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 常用命令
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | 启动开发服务器（端口 8080） |
+| `npm run build` | 生产构建 |
+| `npm run lint` | ESLint 检查 |
+| `npm run test` | 运行测试 |
+| `npm run test:watch` | 监听模式运行测试 |
+| `npm run preview` | 预览生产构建 |
 
-**Use GitHub Codespaces**
+## 项目结构
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```
+src/
+├── components/ui/    # shadcn/ui 组件库
+├── hooks/            # 自定义 Hooks
+├── integrations/     # Supabase 集成
+├── lib/
+│   ├── documentTypes.ts   # 42 种文书类型定义
+│   ├── exportDocument.ts  # Word/PDF 导出
+│   └── utils.ts           # 工具函数
+├── pages/
+│   ├── Index.tsx             # 首页 - 文书类型选择
+│   ├── GenerateDocument.tsx  # 表单 + AI 生成 + 预览
+│   └── NotFound.tsx          # 404 页
+└── test/             # 测试文件
+```
 
-## What technologies are used for this project?
+## 免责声明
 
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+本工具生成的法律文书仅供参考，不构成法律意见。建议在使用前咨询专业律师。

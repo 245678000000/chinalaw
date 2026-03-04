@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Copy, Check, Loader2, Send, FileText, FileDown, ChevronDown } from "lucide-react";
 import ReactMarkdown from "react-markdown";
@@ -28,6 +28,12 @@ const GenerateDocument = () => {
   const [followUp, setFollowUp] = useState("");
   const [isFollowingUp, setIsFollowingUp] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   if (!docType) {
     return (
@@ -85,33 +91,38 @@ const GenerateDocument = () => {
   };
 
   const processStream = async (resp: Response, onDelta: (text: string) => void) => {
-    const reader = resp.body!.getReader();
+    if (!resp.body) {
+      throw new Error("响应体为空");
+    }
+    const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
 
-      let newlineIdx: number;
-      while ((newlineIdx = buffer.indexOf("\n")) !== -1) {
-        let line = buffer.slice(0, newlineIdx);
-        buffer = buffer.slice(newlineIdx + 1);
-        if (line.endsWith("\r")) line = line.slice(0, -1);
-        if (line.startsWith(":") || line.trim() === "") continue;
-        if (!line.startsWith("data: ")) continue;
-        const jsonStr = line.slice(6).trim();
-        if (jsonStr === "[DONE]") return;
-        try {
-          const parsed = JSON.parse(jsonStr);
-          const content = parsed.choices?.[0]?.delta?.content;
-          if (content) onDelta(content);
-        } catch {
-          buffer = line + "\n" + buffer;
-          break;
+        let newlineIdx: number;
+        while ((newlineIdx = buffer.indexOf("\n")) !== -1) {
+          const line = buffer.slice(0, newlineIdx).replace(/\r$/, "");
+          buffer = buffer.slice(newlineIdx + 1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") return;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            if (content) onDelta(content);
+          } catch {
+            // incomplete JSON chunk — skip and continue
+          }
         }
       }
+    } finally {
+      reader.releaseLock();
     }
   };
 
@@ -133,11 +144,11 @@ const GenerateDocument = () => {
         fullText += chunk;
         setGeneratedText(fullText);
       });
-    } catch (e: any) {
-      if (e.name !== "AbortError") {
-        toast({ title: "生成失败", description: e.message, variant: "destructive" });
-        setStep("form");
-      }
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "AbortError") return;
+      const msg = e instanceof Error ? e.message : "生成失败，请稍后重试";
+      toast({ title: "生成失败", description: msg, variant: "destructive" });
+      setStep("form");
     } finally {
       setIsGenerating(false);
     }
@@ -163,20 +174,41 @@ const GenerateDocument = () => {
         setGeneratedText(fullText);
       });
       setFollowUp("");
-    } catch (e: any) {
-      if (e.name !== "AbortError") {
-        toast({ title: "修改失败", description: e.message, variant: "destructive" });
-      }
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name === "AbortError") return;
+      const msg = e instanceof Error ? e.message : "修改失败，请稍后重试";
+      toast({ title: "修改失败", description: msg, variant: "destructive" });
     } finally {
       setIsFollowingUp(false);
     }
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(generatedText);
-    setCopied(true);
-    toast({ title: "已复制到剪贴板" });
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(generatedText);
+      setCopied(true);
+      toast({ title: "已复制到剪贴板" });
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast({ title: "复制失败", description: "请手动选择文本进行复制", variant: "destructive" });
+    }
+  };
+
+  const handleExportWord = async () => {
+    try {
+      await exportToWord(generatedText, docType.name);
+    } catch {
+      toast({ title: "导出 Word 失败", description: "请稍后重试", variant: "destructive" });
+    }
+  };
+
+  const handleExportPDF = () => {
+    try {
+      exportToPDF(generatedText, docType.name);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "请稍后重试";
+      toast({ title: "导出 PDF 失败", description: msg, variant: "destructive" });
+    }
   };
 
   // Group fields by prefix for better visual organization
@@ -301,7 +333,7 @@ const GenerateDocument = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => exportToWord(generatedText, docType.name)}
+                      onClick={handleExportWord}
                       disabled={!generatedText || isGenerating}
                       className="text-xs"
                     >
@@ -311,7 +343,7 @@ const GenerateDocument = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => exportToPDF(generatedText, docType.name)}
+                      onClick={handleExportPDF}
                       disabled={!generatedText || isGenerating}
                       className="text-xs"
                     >
@@ -324,7 +356,7 @@ const GenerateDocument = () => {
               <CardContent>
                 <ScrollArea className="max-h-[60vh]">
                   {isGenerating && !generatedText && (
-                    <div className="flex flex-col items-center gap-3 py-12 text-muted-foreground">
+                    <div className="flex flex-col items-center gap-3 py-12 text-muted-foreground" role="status" aria-label="正在生成文书">
                       <div className="relative">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       </div>
