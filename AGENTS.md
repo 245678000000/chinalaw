@@ -22,7 +22,9 @@ See `package.json` scripts:
 
 ### Non-obvious Caveats
 
-- ESLint reports 6 pre-existing errors (empty interfaces in shadcn/ui components, `no-explicit-any` in `GenerateDocument.tsx`, `no-require-imports` in `tailwind.config.ts`) and 7 warnings. These are not blocking for development.
+- ESLint reports 4 pre-existing errors (empty interfaces in shadcn/ui components, `no-require-imports` in `tailwind.config.ts`) and 7 warnings. These are not blocking for development.
 - The project has both `package-lock.json` and `bun.lockb`; use `npm` as the primary package manager (matching `package-lock.json`).
 - The AI document generation feature depends on a remote Supabase Edge Function at `https://fybcdhdmpclymvopbhwf.supabase.co/functions/v1/generate-document` which uses a `LOVABLE_API_KEY` server-side secret. This cannot be configured locally.
 - Some document forms (e.g. 借款合同) have complex validation requiring all required fields including dropdown selections; the 民事起诉状 (Civil Complaint) form is straightforward for testing.
+- `.env` is gitignored; copy `.env.example` to `.env` and fill in the Supabase credentials if starting fresh.
+- TypeScript strict mode (`strictNullChecks` + `noImplicitAny`) is enabled; keep it that way.
